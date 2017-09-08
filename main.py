@@ -1,10 +1,13 @@
-import tornado.web
 import tornado
-from Routes import api
+import tornado.web
+
+from routes import api, cfg
+from routes import frotend
+
 
 def make_app():
-    api_routes = api.route_config()
-    return tornado.web.Application(api_routes)
+    routes = api.route_config() + frotend.route_config()
+    return tornado.web.Application(routes, **cfg.settings)
 
 if __name__ == "__main__":
     app = make_app()

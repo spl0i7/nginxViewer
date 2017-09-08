@@ -1,0 +1,116 @@
+
+{% extends "../views/base.html" %}
+    {% block title %} Dashboard {% end %}
+    {% block main_content %}
+    <div class="main-panel">
+        <nav class="navbar navbar-default navbar-fixed">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation-example-2">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Dashboard</a>
+                </div>
+                <div class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav navbar-left">
+                        <li>
+                            <a href="/" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="fa fa-dashboard"></i>
+								<p class="hidden-lg hidden-md">Dashboard</p>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    <p>
+										Account
+										<b class="caret"></b>
+									</p>
+                              </a>
+                              <ul class="dropdown-menu">
+                                <li><a href="#">Account Settings</a></li>
+                                <li><a href="#">Logout</a></li>
+                              </ul>
+                        </li>
+						<li class="separator hidden-lg hidden-md"></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="container-fluid">
+                <div class="loader center-block"></div>
+                <div class="all-data">
+                    <div class="dropdown timespan">
+                        <button class="btn btn-primary btn-lg dropdown-toggle" type="button" data-toggle="dropdown">All Time
+                        <span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Past Day</a></li>
+                            <li><a href="#">Past Week</a></li>
+                            <li><a href="#">Past Month</a></li>
+                            <li><a href="#">All Time</a></li>
+                        </ul>
+                    </div>
+
+                <div class="row card-container">
+                    <div id="chart"></div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!--footer-->
+
+        <footer class="footer">
+            <p class="copyright pull-right">
+                &copy; <script>document.write(new Date().getFullYear())</script> DisarrayTech
+            </p>
+        </footer>
+
+    </div>
+    {% end %}
+    {% block page_script %}
+    <script>
+        $(document).ready(function() {
+
+            $('.loader').hide();
+            $('.all-data').show();
+
+
+            $.get('/api/bandwidth', function (data) {
+                console.log(data);
+
+                var chart = c3.generate({
+                    bindto: '#chart',
+                    data: {
+                        columns: [
+                            ['data1', data.map(function (d) {
+                                return d._id;
+                            })],
+                            ['data2', data.map(function (d){
+                                return d.count;
+                            })]
+                        ],
+                        type: 'bar'
+                    },
+                    bar: {
+                        width: {
+                            ratio: 0.5 // this makes bar width 50% of length between ticks
+                        }
+                    }
+                });
+                console.log(chart,'heeeha');
+            });
+        });
+
+    </script>
+    {% end %}
+
+
+</html>
