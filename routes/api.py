@@ -35,7 +35,7 @@ class RestHandler:
             # count number of unique ip address
             unique_visitor = db.access_logs.aggregate([
                 {'$match': {'timestamp': {'$gt': since}}},
-                {'$group': {'_id': '$remote_ip'}},
+                {'$group': {'_id': '$remote_ip.ip'}},
                 {'$group': {'_id': None, 'count': {'$sum': 1}}}
             ])
 
@@ -78,12 +78,10 @@ class RestHandler:
 
             hits_query = db.access_logs.aggregate([
                 {'$match': {'timestamp': {'$gt': since}}},
-                {'$group': {'_id': '$response_code', 'count': {'$sum': 1}, 'size' : {'$sum' : '$size'}}}
+                {'$group': {'_id': '$response_code', 'count': {'$sum': 1}}}
             ])
 
-            hits = list(hits_query)
-
-            self.write(json.dumps(hits))
+            self.write(json.dumps(list(hits_query)))
 
     class UserSystem(tornado.web.RequestHandler):
         def get(self):
@@ -94,9 +92,22 @@ class RestHandler:
 
             self.write(json.dumps(list([])))
 
+    class Geographic(tornado.web.RequestHandler):
+        def get(self):
+            timespan = self.get_argument('timespan', None)
+            since = utils.get_since_today(timespan)
+
+            geolocation_query = db.access_logs.aggregate([
+                {'$match': {'timestamp': {'$gt': since}}},
+                {'$group': {'_id': '$remote_ip.country_code', 'count': {'$sum': 1}}},
+                {'$project': {'_id': 0, 'c_code': {'$toLower' : '$_id'}, 'count': 1}},
+            ])
+            self.write(json.dumps(list(geolocation_query)))
+
 
 
 def route_config():
     return [(r"/api/bandwidth*", RestHandler.Bandwidth),
             (r"/api/statuscode*", RestHandler.Statuscode),
-            (r"/api/summary*", RestHandler.Summary)]
+            (r"/api/summary*", RestHandler.Summary),
+            (r"/api/geographic*", RestHandler.Geographic)]
