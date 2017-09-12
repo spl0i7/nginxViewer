@@ -60,9 +60,7 @@
                         </ul>
                     </div>
                 <div class="row card-container">
-                    <div class="col-md-12">
-                        <div id="vmap" style="width: 100%; height: 500px;"></div>
-                    </div>
+
                 </div>
                 </div>
             </div>
@@ -120,6 +118,33 @@
                         map : 'world_en'
                     });
 
+
+
+
+                let table = `<div class="col-md-7 col-md-offset-2">
+                                    <table class="table">
+                                      <thead>
+                                        <tr>
+                                          <th>Country</th>
+                                          <th>Hits</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody class="stats-table">
+                                      </tbody>
+                                    </table>
+                                    </div>`
+                card_container.append(table);
+                let stats_table = $('.stats-table');
+                for(let i = 0; i < data.length; ++i) {
+                       stats_table.append(`
+                        <tr>
+                            <td>${data[i]['country']}</td>
+                            <td>${numeral(data[i]['count']).format('0,0')}</td>
+                        </tr>
+                       `)
+                   }
+
+
                 }
 
                 else {
@@ -134,5 +159,3 @@
     </script>
     {% end %}
 
-
-</html>

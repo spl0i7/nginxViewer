@@ -1,9 +1,12 @@
 import datetime
 
 
-def get_aggregration_count(x, field):
+async def get_aggregration_count(x, field):
+    results = []
+    async for doc in x:
+        results.append(doc)
     try:
-        return list(x)[0][field]
+        return results[0][field]
     except:
         return 0
 
