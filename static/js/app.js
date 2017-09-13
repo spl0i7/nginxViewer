@@ -65,7 +65,27 @@ const HTTP_STATUS_CODES = {
   "511": "Network Authentication Required"
 };
 
+switch(window.location.pathname){
+  case '/':
+      $('#summary').addClass('active');
+     break;
+  case '/usersys':
+     $('#usersys').addClass('active');
+     break;
+  case '/bandwidth':
 
+     $('#bandwidth').addClass('active');
+     break;
+  case '/statuscode':
+      $('#statuscode').addClass('active');
+     break;
+  case '/geographic':
+      $('#geographic').addClass('active');
+     break;
+  case '/referrers':
+      $('#referrers').addClass('active');
+     break;
+}
 
 
 $('#day').click(function () {
@@ -146,7 +166,3 @@ function generate_card6md(title, body) {
     `
     return card;
 }
-
-
-
-
