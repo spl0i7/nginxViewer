@@ -7,8 +7,9 @@ settings = {
     'view_path': '../views',
     'index_file': 'index.html',
     'bandwidth': 'bandwidth.html',
-    'statuscode': 'status_code.html',
+    'status_code': 'status_code.html',
     'geographic': 'geographic.html',
+    'user_system': 'user_system.html',
     'static_path': 'static'
 }
 
@@ -25,11 +26,15 @@ class FrontEnd:
 
     class Statuscode(tornado.web.RequestHandler):
         def get(self):
-            self.render(os.path.join(settings['view_path'], settings['statuscode']))
+            self.render(os.path.join(settings['view_path'], settings['status_code']))
 
     class Geographic(tornado.web.RequestHandler):
         def get(self):
             self.render(os.path.join(settings['view_path'], settings['geographic']))
+
+    class Usersystem(tornado.web.RequestHandler):
+        def get(self):
+            self.render(os.path.join(settings['view_path'], settings['user_system']))
 
 
 def route_config():
@@ -38,4 +43,5 @@ def route_config():
         (r'/statuscode', FrontEnd.Statuscode),
         (r'/bandwidth', FrontEnd.Bandwidth),
         (r'/geographic', FrontEnd.Geographic),
+        (r'/usersystem', FrontEnd.Usersystem),
     ]

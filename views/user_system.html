@@ -1,4 +1,8 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>
 {% extends "../views/base.html" %}
     {% block title %} Dashboard {% end %}
     {% block main_content %}
@@ -82,7 +86,7 @@
     <script type="text/javascript" src="/static/js/jquery.vmap.world.js" charset="utf-8"></script>
 
     <script>
-        let request_url = '/api/geographic?timespan=';
+        let request_url = '/api/usersystem?timespan=';
         let card_container = $('.card-container');
 
         function request_data(url) {
@@ -94,56 +98,28 @@
 
                    card_container.append(`
                             <div class="col-md-12">
-                                <div id="vmap" style="width: 100%; height: 600px;"></div>
+                                <div id="chart"></div></div>
                             </div>
                    `);
-                   formatted_data = {};
+                   formatted_data = [];
                    for(let i = 0 ; i < data.length; ++i){
-                       formatted_data[data[i].c_code] = data[i].count;
+                       let sub_arr = []
+                       sub_arr.push(data[i]['os']);
+                       sub_arr.push(data[i]['count']);
+                       formatted_data.push(sub_arr);
                    }
 
 
-                    $('#vmap').vectorMap(
-                    {
-                        backgroundColor: null,
-                        color: '#ffffff',
-                        hoverOpacity: 0.7,
-                        selectedColor: '#666666',
-                        enableZoom: false,
-                        showTooltip: true,
-                        values: formatted_data,
-                        scaleColors: ['#FFEBEE', '#B71C1C'],
-                        normalizeFunction: 'polynomial',
-                        hoverColor: false,
-                        map : 'world_en',
-
+                    let chart = c3.generate({
+                        bindto: '#chart',
+                            data: {
+                                columns: formatted_data,
+                                type : 'pie',
+                                onclick: function (d, i) { console.log("onclick", d, i); },
+                                onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+                                onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+                        }
                     });
-
-
-
-
-                let table = `<div class="col-md-7 col-md-offset-2">
-                                    <table class="table">
-                                      <thead>
-                                        <tr>
-                                          <th>Country</th>
-                                          <th>Hits</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody class="stats-table">
-                                      </tbody>
-                                    </table>
-                                    </div>`
-                card_container.append(table);
-                let stats_table = $('.stats-table');
-                for(let i = 0; i < data.length; ++i) {
-                       stats_table.append(`
-                        <tr>
-                            <td>${data[i]['country']}</td>
-                            <td>${numeral(data[i]['count']).format('0,0')}</td>
-                        </tr>
-                       `)
-                   }
 
 
                 }
@@ -160,3 +136,9 @@
     </script>
     {% end %}
 
+</title>
+</head>
+<body>
+
+</body>
+</html>

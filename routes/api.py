@@ -37,8 +37,6 @@ class RestHandler:
             total_404 = yield db.access_logs.count(
                 {'timestamp': {'$gt': since}, 'response_code': '404'}
             )
-
-
             # count number of unique ip address
             unique_visitor = db.access_logs.aggregate([
                 {'$match': {'timestamp': {'$gt': since}}},
@@ -51,7 +49,6 @@ class RestHandler:
                 {'$match': {'timestamp': {'$gt': since}}},
                 {'$group': {'_id': None, 'count': {'$sum': '$size'}}}
             ])
-
 
             # these are simply an int
             stats['total_requests'] = total_req
@@ -82,7 +79,7 @@ class RestHandler:
 
             hits_query = db.access_logs.aggregate([
                 {'$match': {'timestamp': {'$gt': since}}},
-                {'$group': {'_id': '$response_code', 'count': {'$sum': 1}}}
+                {'$group': {'_id': '$response_code', 'count': {'$sum': 1}, 'size' : {'$sum': '$size'}}}
             ])
             results = []
             while (yield hits_query.fetch_next):
@@ -93,13 +90,50 @@ class RestHandler:
     class UserSystem(tornado.web.RequestHandler):
         @gen.coroutine
         def get(self):
-            stats = {}
-            # TODO
+
             timespan = self.get_argument('timespan', None)
             since = utils.get_since_today(timespan)
 
-            query = yield db.access_logs.find_one({'response_code':'404'})
-            self.write(json.dumps(query, default=str))
+            results = {
+                'device':[],
+                'ua':[],
+                'os':[]
+            }
+
+            user_os_query = db.access_logs.aggregate([
+                {'$match': {'timestamp': {'$gt': since}}},
+                {'$group': {'_id': '$client.os.family', 'count' : { '$sum': 1}}},
+                {'$limit': 15},
+                {'$project': {'_id': 0, 'os': '$_id', 'count': 1}},
+                {'$sort' : {'count': -1}}
+            ])
+
+            while (yield user_os_query.fetch_next):
+                results['os'].append(user_os_query.next_object())
+
+            user_device_query = db.access_logs.aggregate([
+                {'$match': {'timestamp': {'$gt': since}}},
+                {'$group': {'_id': '$client.device.family', 'count': {'$sum': 1}}},
+                {'$limit': 15},
+                {'$project': {'_id': 0, 'device': '$_id', 'count': 1}},
+                {'$sort': {'count': -1}}
+            ])
+
+            while (yield user_device_query.fetch_next):
+                results['device'].append(user_device_query.next_object())
+
+            user_ua_query = db.access_logs.aggregate([
+                {'$match': {'timestamp': {'$gt': since}}},
+                {'$group': {'_id': '$client.user_agent.family', 'count': {'$sum': 1}}},
+                {'$limit': 15},
+                {'$project': {'_id': 0, 'user_agent': '$_id', 'count': 1}},
+                {'$sort': {'count': -1}}
+            ])
+
+            while (yield user_ua_query.fetch_next):
+                results['ua'].append(user_ua_query.next_object())
+
+            self.write(json.dumps(results, default=str))
 
     class Geographic(tornado.web.RequestHandler):
         @gen.coroutine
