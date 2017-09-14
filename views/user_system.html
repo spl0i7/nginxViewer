@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+98 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -84,6 +84,7 @@
 
     <script type="text/javascript" src="/static/js/jquery.vmap.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.vmap.world.js" charset="utf-8"></script>
+47
 
     <script>
         let request_url = '/api/usersystem?timespan=';
@@ -94,34 +95,75 @@
                 show_data();
                 data = JSON.parse(data);
 
-                if(data.length > 0) {
+                if(data['os'].length !== 0 || data['device'].length !== 0 || data['ua'].length !== 0) {
 
                    card_container.append(`
                             <div class="col-md-12">
-                                <div id="chart"></div></div>
+                                <div id="chart_os"></div></div>
+                            </div>
+                            <div class="col-md-12">
+                                <div id="chart_device"></div></div>
+                            </div>
+                            <div class="col-md-12">
+                                <div id="chart_ua"></div></div>
                             </div>
                    `);
-                   formatted_data = [];
-                   for(let i = 0 ; i < data.length; ++i){
-                       let sub_arr = []
-                       sub_arr.push(data[i]['os']);
-                       sub_arr.push(data[i]['count']);
-                       formatted_data.push(sub_arr);
-                   }
 
+                   let formatted_data_os = [],
+                       formatted_data_ua = [],
+                       formatted_data_device = [];
 
-                    let chart = c3.generate({
-                        bindto: '#chart',
+                   for(let i = 0 ; i < data['os'].length; ++i){
+                       let sub_arr = [];
+                       sub_arr.push(data['os'][i]['os']);
+                       sub_arr.push(data['os'][i]['count']);
+                       formatted_data_os.push(sub_arr);
+                     }
+                    for(let i = 0 ; i < data['device'].length; ++i){
+                       let sub_arr = [];
+                       sub_arr.push(data['device'][i]['device']);
+                       sub_arr.push(data['device'][i]['count']);
+                       formatted_data_device.push(sub_arr);
+                     }
+                    for(let i = 0 ; i < data['ua'].length; ++i){
+                       let sub_arr = [];
+                       sub_arr.push(data['ua'][i]['user_agent']);
+                       sub_arr.push(data['ua'][i]['count']);
+                       formatted_data_ua.push(sub_arr);
+                    }
+
+                    let chart_os = c3.generate({
+                        bindto: '#chart_os',
                             data: {
-                                columns: formatted_data,
-                                type : 'pie',
-                                onclick: function (d, i) { console.log("onclick", d, i); },
-                                onmouseover: function (d, i) { console.log("onmouseover", d, i); },
-                                onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+                                columns: formatted_data_os,
+                                type: 'donut'
+                            },
+                         donut: {
+                            title: "Operating Systems"
                         }
                     });
 
+                    let chart_devices = c3.generate({
+                        bindto: '#chart_device',
+                            data: {
+                                columns: formatted_data_device,
+                                type: 'donut'
+                            },
+                         donut: {
+                            title: "Devices"
+                        }
+                    });
 
+                    let chart_browsers = c3.generate({
+                        bindto: '#chart_ua',
+                            data: {
+                                columns: formatted_data_ua,
+                                type: 'donut'
+                            },
+                         donut: {
+                            title: "Browsers"
+                        }
+                    });
                 }
 
                 else {
