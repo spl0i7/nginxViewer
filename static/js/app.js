@@ -68,23 +68,32 @@ const HTTP_STATUS_CODES = {
 switch(window.location.pathname){
   case '/':
       $('#summary').addClass('active');
+      break;
+
+  case '/usersystem':
+
+     $('#usersystem').addClass('active');
      break;
-  case '/usersys':
-     $('#usersys').addClass('active');
-     break;
+
   case '/bandwidth':
 
      $('#bandwidth').addClass('active');
      break;
+
   case '/statuscode':
+
       $('#statuscode').addClass('active');
-     break;
+      break;
+
   case '/geographic':
+
       $('#geographic').addClass('active');
-     break;
+      break;
+
   case '/referrers':
+
       $('#referrers').addClass('active');
-     break;
+      break;
 }
 
 
