@@ -57,6 +57,18 @@
                             <li><a href="#" id="all">All Time</a></li>
                         </ul>
                     </div>
+                    <div class="row">
+                        <div class="dropdown col-xs-3 col-xs-offset-6 " >
+                            <button class="btn btn-primary btn-lg dropdown-toggle" type="button" data-toggle="dropdown">GRAPH
+                            <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                              <li><a href="#" onclick="drawchart('#chart','HITS','KEYS','bar')">BAR CHART</a></li>
+                              <li><a href="#" onclick="drawchart('#chart','HITS','KEYS','area-spline')">AREA-SPLINE</a></li>
+                              <li><a href="#" onclick="drawpiechart('#chart','pie')">PIE CHART</a></li>
+                            </ul>
+                        </div>
+                    </div>
+        </div>
                 <div class="row card-container">
                     
                 </div>
@@ -75,7 +87,20 @@
     </div>
     {% end %}
     {% block page_script %}
+    <style>
+       tbody tr:nth-child(2n){
+          background-color: EEEEEE;
+          color: 263238;
+        }
+        tbody tr:hover{
+          background-color:00796B ;
+        }
+    </style>
     <script>
+
+        let hits,keys,type='bar';
+        let statuscodedata;
+        let unsortedhits=[];
         let request_url = '/api/statuscode?timespan=';
         let card_container = $('.card-container');
         let stats = {
@@ -89,7 +114,7 @@
             $.get(url, function (data) {
                 show_data();
                 data = JSON.parse(data);
-                console.log(data);
+                statuscodedata=data;
                 if(data.length > 0) {
                     for(let i = 0; i < data.length; ++i) {
 
@@ -116,7 +141,7 @@
 
                     card_container.append(
                         `<div class="col-md-7 col-md-offset-2">
-                            <div class="ct-chart ct-perfect-fourth"></div>
+                            <div id="chart"></div>
                         </div>`
                     );
 
@@ -125,8 +150,13 @@
                                       <thead>
                                         <tr>
                                           <th>Status Code</th>
-                                          <th>Hits</th>
+                                          <th>Hits<span class="caret"  onclick="sort('asc','status_code','count');"></span>
+                                                  <span class="dropup">
+                                                    <span class="caret" onclick="sort('desc','status_code','count');"></span>
+                                                  </span>
+                                          </th>
                                           <th>Bandwidth</th>
+                                          <th>Status Code Meaning</th>
                                         </tr>
                                       </thead>
                                       <tbody class="stats-table">
@@ -137,25 +167,28 @@
 
                     let stats_table = $('.stats-table');
 
-                   for(let i = 0; i < data.length; ++i) {
-                       stats_table.append(`
-                        <tr>
-                        <td>${data[i]['_id']}</td>
-                          <td>${numeral(data[i]['count']).format('0a')}</td>
-                          <td>${numeral(data[i]['size']).format('0b')}</td>
-                        </tr>
-                       `)
-                   }
+                    for(let i = 0; i < data.length; ++i) {
+                        stats_table.append(`
 
+                            <tr id="${i}status" >
+                              <td class='id'>${data[i]['_id']}</td>
+                              <td class='cnt'>${numeral(data[i]['count']).format('0a')}</td>
+                              <td class='size'>${numeral(data[i]['size']).format('0b')}</td>
+                              <td class='meaning'>${HTTP_STATUS_CODES [data[i]['_id']]}</td>
+                            </tr>
+                            `)
+                        }
+                     keys = Object.keys(stats);
 
-                    let keys = Object.keys(stats);
-
-                    let hits = [];
+                     hits = [];
 
                     for(i in stats) {
                         hits.push(stats[i].hits);
+                        unsortedhits.push(stats[i].hits);
                     }
 
+
+                drawchart('#chart','HITS','KEYS','bar');
 
                 }
 

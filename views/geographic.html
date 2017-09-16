@@ -77,11 +77,20 @@
     </div>
     {% end %}
     {% block page_script %}
-
+    <style>
+       tbody tr:nth-child(2n){
+          background-color: EEEEEE;
+          color: 263238;
+        }
+        tbody tr:hover{
+          background-color:00796B ;
+        }
+    </style>
     <script type="text/javascript" src="/static/js/jquery.vmap.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.vmap.world.js" charset="utf-8"></script>
 
     <script>
+        let geographicdata;
         let request_url = '/api/geographic?timespan=';
         let card_container = $('.card-container');
 
@@ -89,20 +98,41 @@
             $.get(url, function (data) {
                 show_data();
                 data = JSON.parse(data);
-
+                console.log(data);
+                geographicdata=data;
                 if(data.length > 0) {
 
                    card_container.append(`
                             <div class="col-md-12">
                                 <div id="vmap" style="width: 100%; height: 600px;"></div>
+
+                            </div>
+                            <div class="col-md-12">
+                                <div id="chart_country"></div></div>
                             </div>
                    `);
                    formatted_data = {};
+
                    for(let i = 0 ; i < data.length; ++i){
                        formatted_data[data[i].c_code] = data[i].count;
                    }
-
-
+                   <!--var data_pie_chart={};-->
+                   <!--let temp=0;-->
+                   <!--for(let i=0;i<data.length;i++){-->
+                       <!--if(i<9)-->
+                       <!--data_pie_chart[data[i].country]=data[i].count;-->
+                       <!--else{-->
+                        <!--temp+=data[i].count;;-->
+                       <!--}-->
+                   <!--}-->
+                   <!--data_pie_chart['others']=temp;-->
+                    <!--var chart = c3.generate({-->
+                    <!--bindto:"#chart_country",-->
+                        <!--data: {-->
+                            <!--json: data_pie_chart,-->
+                            <!--type:'pie',-->
+                                    <!--},-->
+                    <!--});-->
                     $('#vmap').vectorMap(
                     {
                         backgroundColor: null,
@@ -118,16 +148,18 @@
                         map : 'world_en',
 
                     });
-
-
-
-
                 let table = `<div class="col-md-7 col-md-offset-2">
                                     <table class="table">
                                       <thead>
                                         <tr>
-                                          <th>Country</th>
-                                          <th>Hits</th>
+                                          <th>Country<span class="caret"  onclick="sort('asc','geographic','country');"></span>
+                                                  <span class="dropup">
+                                                    <span class="caret" onclick="sort('desc','geographic','country');"></span>
+                                                  </span></th>
+                                          <th>Hits<span class="caret"  onclick="sort('asc','geographic','count');"></span>
+                                                  <span class="dropup">
+                                                    <span class="caret" onclick="sort('desc','geographic','count');"></span>
+                                                  </span></th>
                                         </tr>
                                       </thead>
                                       <tbody class="stats-table">
@@ -138,9 +170,9 @@
                 let stats_table = $('.stats-table');
                 for(let i = 0; i < data.length; ++i) {
                        stats_table.append(`
-                        <tr>
-                            <td>${data[i]['country']}</td>
-                            <td>${numeral(data[i]['count']).format('0,0')}</td>
+                        <tr id="${i}geo">
+                            <td class='country'>${data[i]['country']}</td>
+                            <td class='count'>${numeral(data[i]['count']).format('0,0')}</td>
                         </tr>
                        `)
                    }
