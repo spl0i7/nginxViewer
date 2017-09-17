@@ -1,5 +1,25 @@
 import datetime
+from motor import MotorClient
+from tornado import gen
+import tornado.web
+import json
+import re
+import bcrypt
 
+
+connection = MotorClient()
+db = connection.nginxLogger
+
+class LoginChecker(tornado.web.RequestHandler):
+    def get_current_user(self):
+        return self.get_secure_cookie('user')
+
+    def prepare(self):
+        if not self.current_user:
+            if re.match(r'^/api', self.request.path):
+                return self.write(json.dumps({'success': False}, default=str))
+            else:
+                return self.redirect('/login')
 
 async def get_aggregration_count(x, field):
     results = []

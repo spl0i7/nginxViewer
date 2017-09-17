@@ -1,17 +1,21 @@
+from utils import utils
+from utils.utils import LoginChecker
+from motor import MotorClient
+from tornado import gen
 import tornado.ioloop
 import tornado.web
-from motor import MotorClient
 import json
 import re
-import utils.utils as utils
-from tornado import gen
+import bcrypt
+
 
 connection = MotorClient()
 db = connection.nginxLogger
 
 
 class RestHandler:
-    class Summary(tornado.web.RequestHandler):
+
+    class Summary(LoginChecker):
         @gen.coroutine
         def get(self):
             stats = {}
@@ -60,20 +64,21 @@ class RestHandler:
             stats['unique_visitor'] = yield utils.get_aggregration_count(unique_visitor, 'count')
             stats['total_bandwidth'] = yield utils.get_aggregration_count(total_bandwidth, 'count')
 
-            self.write(json.dumps(stats, default=str))
+            return self.write(json.dumps(stats, default=str))
 
-    class Bandwidth(tornado.web.RequestHandler):
+    class Bandwidth(LoginChecker):
+        @gen.coroutine
         def get(self):
             query = db.access_logs.aggregate([
                 {'$group': {'_id': {'$month': "$timestamp"}, 'count': {'$sum': '$size'}}},
                 {'$sort': {'_id': 1}}
             ])
-            self.write(json.dumps(list(query)))
+            return self.write(json.dumps(list(query)))
 
-    class Statuscode(tornado.web.RequestHandler):
+    class Statuscode(LoginChecker):
+
         @gen.coroutine
         def get(self):
-
             timespan = self.get_argument('timespan', None)
             since = utils.get_since_today(timespan)
 
@@ -85,12 +90,11 @@ class RestHandler:
             while (yield hits_query.fetch_next):
                 results.append(hits_query.next_object())
 
-            self.write(json.dumps(results, default=str))
+            return self.write(json.dumps(results, default=str))
 
-    class UserSystem(tornado.web.RequestHandler):
+    class UserSystem(LoginChecker):
         @gen.coroutine
         def get(self):
-
             timespan = self.get_argument('timespan', None)
             since = utils.get_since_today(timespan)
 
@@ -133,9 +137,9 @@ class RestHandler:
             while (yield user_ua_query.fetch_next):
                 results['ua'].append(user_ua_query.next_object())
 
-            self.write(json.dumps(results, default=str))
+            return self.write(json.dumps(results, default=str))
 
-    class Geographic(tornado.web.RequestHandler):
+    class Geographic(LoginChecker):
         @gen.coroutine
         def get(self):
             timespan = self.get_argument('timespan', None)
@@ -154,8 +158,36 @@ class RestHandler:
             while (yield geolocation_query.fetch_next):
                 results.append(geolocation_query.next_object())
 
-            self.write(json.dumps(results, default=str))
+            return self.write(json.dumps(results, default=str))
 
+    class LoginHandler(tornado.web.RequestHandler):
+        @gen.coroutine
+        def post(self):
+            if self.current_user is not None:
+                # user is already logged in
+                self.redirect('/')
+            else:
+                username = self.get_body_argument('username', None)
+                password = self.get_body_argument('password', None)
+
+                if username is None or password is None:
+                    # forms fields were empty
+                    return self.redirect('/login')
+
+                # look up that username
+                query_username = yield db.user.find_one(
+                    {'username': username}
+                )
+
+                if query_username is None :
+                    # database did not find that username
+                    return self.redirect('/login')
+                else:
+                    # Now check hashed passwords
+                    if bcrypt.checkpw(password, query_username['secret']):
+                        self.set_secure_cookie('user', username)
+                        # Login Successful
+                        return self.redirect('/')
 
 
 def route_config():
@@ -163,4 +195,6 @@ def route_config():
             (r"/api/statuscode*", RestHandler.Statuscode),
             (r"/api/summary*", RestHandler.Summary),
             (r"/api/geographic*", RestHandler.Geographic),
-            (r"/api/usersystem*", RestHandler.UserSystem)]
+            (r"/api/usersystem*", RestHandler.UserSystem),
+            (r"/api/login*", RestHandler.LoginHandler)]
+

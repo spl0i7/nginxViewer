@@ -7,7 +7,7 @@ from routes import frotend
 
 def make_app():
     routes = api.route_config() + frotend.route_config()
-    return tornado.web.Application(routes, **frotend.settings)
+    return tornado.web.Application(routes, **frotend.settings, cookie_secret="som3r34lys3cr3ts7u77")
 
 if __name__ == "__main__":
     app = make_app()

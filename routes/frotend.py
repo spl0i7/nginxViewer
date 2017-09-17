@@ -2,7 +2,7 @@ import os
 
 import tornado.ioloop
 import tornado.web
-
+from utils.utils import LoginChecker
 settings = {
     'view_path': '../views',
     'index_file': 'index.html',
@@ -17,30 +17,37 @@ settings = {
 
 
 class FrontEnd:
-    class Index(tornado.web.RequestHandler):
+    class Index(LoginChecker):
         def get(self):
-            self.render(os.path.join(settings['view_path'], settings['index_file']))
+            return self.render(os.path.join(settings['view_path'], settings['index_file']))
 
-    class Bandwidth(tornado.web.RequestHandler):
+    class Bandwidth(LoginChecker):
         def get(self):
-            self.render(os.path.join(settings['view_path'], settings['bandwidth']))
+            return self.render(os.path.join(settings['view_path'], settings['bandwidth']))
 
-    class Statuscode(tornado.web.RequestHandler):
+    class Statuscode(LoginChecker):
         def get(self):
-            self.render(os.path.join(settings['view_path'], settings['status_code']))
+            return self.render(os.path.join(settings['view_path'], settings['status_code']))
 
-    class Geographic(tornado.web.RequestHandler):
+    class Geographic(LoginChecker):
         def get(self):
-            self.render(os.path.join(settings['view_path'], settings['geographic']))
+            return self.render(os.path.join(settings['view_path'], settings['geographic']))
 
-    class Usersystem(tornado.web.RequestHandler):
+    class Usersystem(LoginChecker):
         def get(self):
-            self.render(os.path.join(settings['view_path'], settings['user_system']))
-
+            return self.render(os.path.join(settings['view_path'], settings['user_system']))
 
     class Login(tornado.web.RequestHandler):
         def get(self):
-            self.render(os.path.join(settings['view_path'], settings['login']))
+            if self.get_secure_cookie('user') is not None:
+                return self.redirect('/')
+            else:
+                return self.render(os.path.join(settings['view_path'], settings['login']))
+
+    class Logout(LoginChecker):
+        def get(self):
+            self.clear_cookie('user')
+            return self.redirect('/login')
 
 
 def route_config():
@@ -51,4 +58,5 @@ def route_config():
         (r'/geographic', FrontEnd.Geographic),
         (r'/usersystem', FrontEnd.Usersystem),
         (r'/login', FrontEnd.Login),
+        (r'/logout', FrontEnd.Logout)
     ]
