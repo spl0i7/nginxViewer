@@ -10,6 +10,7 @@ settings = {
     'status_code': 'status_code.html',
     'geographic': 'geographic.html',
     'user_system': 'user_system.html',
+    'login' : 'login.html',
     'static_path': 'static'
 }
 
@@ -37,6 +38,11 @@ class FrontEnd:
             self.render(os.path.join(settings['view_path'], settings['user_system']))
 
 
+    class Login(tornado.web.RequestHandler):
+        def get(self):
+            self.render(os.path.join(settings['view_path'], settings['login']))
+
+
 def route_config():
     return [
         (r'/', FrontEnd.Index),
@@ -44,4 +50,5 @@ def route_config():
         (r'/bandwidth', FrontEnd.Bandwidth),
         (r'/geographic', FrontEnd.Geographic),
         (r'/usersystem', FrontEnd.Usersystem),
+        (r'/login', FrontEnd.Login),
     ]
