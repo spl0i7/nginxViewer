@@ -188,6 +188,8 @@ class RestHandler:
                         self.set_secure_cookie('user', username)
                         # Login Successful
                         return self.redirect('/')
+                    else:
+                        return self.redirect('/login')
 
 
 def route_config():

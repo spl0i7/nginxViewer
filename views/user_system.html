@@ -56,7 +56,7 @@
 
                 if(data['os'].length !== 0 || data['device'].length !== 0 || data['ua'].length !== 0) {
 
-                   card_container.append(`
+                    card_container.append(`
                             <div class="col-md-12">
                                 <div id="chart_os"></div></div>
                             </div>
@@ -67,29 +67,29 @@
                                 <div id="chart_ua"></div></div>
                             </div>
                    `);
-                   let formatted_data_os = [],
-                    formatted_data_ua = [],
-                    formatted_data_device = [];
-                   for(let i = 0 ; i < data['os'].length; ++i){
-                       let sub_arr = [];
-                       sub_arr.push(data['os'][i]['os']);
-                       sub_arr.push(data['os'][i]['count']);
-                       formatted_data_os.push(sub_arr);
-                     }
+                    let formatted_data_os = [],
+                        formatted_data_ua = [],
+                        formatted_data_device = [];
+                    for(let i = 0 ; i < data['os'].length; ++i){
+                        let sub_arr = [];
+                        sub_arr.push(data['os'][i]['os']);
+                        sub_arr.push(data['os'][i]['count']);
+                        formatted_data_os.push(sub_arr);
+                    }
                     for(let i = 0 ; i < data['device'].length; ++i){
-                       let sub_arr = [];
-                       sub_arr.push(data['device'][i]['device']);
-                       sub_arr.push(data['device'][i]['count']);
-                       formatted_data_device.push(sub_arr);
-                     }
+                        let sub_arr = [];
+                        sub_arr.push(data['device'][i]['device']);
+                        sub_arr.push(data['device'][i]['count']);
+                        formatted_data_device.push(sub_arr);
+                    }
                     for(let i = 0 ; i < data['ua'].length; ++i){
-                       let sub_arr = [];
-                       sub_arr.push(data['ua'][i]['user_agent']);
-                       sub_arr.push(data['ua'][i]['count']);
-                       formatted_data_ua.push(sub_arr);
+                        let sub_arr = [];
+                        sub_arr.push(data['ua'][i]['user_agent']);
+                        sub_arr.push(data['ua'][i]['count']);
+                        formatted_data_ua.push(sub_arr);
                     }
 
-                    drawdonutchart('#chart_os',formatted_data_os,'Operationg Sysems');
+                    drawdonutchart('#chart_os',formatted_data_os,'Operating Systems');
                     drawdonutchart('#chart_device',formatted_data_device,'Devices');
                     drawdonutchart('#chart_ua',formatted_data_ua,'User Agent');
 
@@ -105,9 +105,9 @@
             request_data(request_url + 'all');
         });
     </script>
-    {% end %}
+        {% end %}
 
-</title>
+    </title>
 </head>
 <body>
 

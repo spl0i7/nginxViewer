@@ -167,83 +167,83 @@ function drawchart(chartid,ylabel,xlabel,chart_type){
     ordinatedata.splice(0,0,ylabel);
     tickvalues.splice(0,0,xlabel);
     type=chart_type;
-    var chart=c3.generate({
-                bindto: chartid,
-                size:{
-                    height:240,
-                    width:480
-                },
-                data:{
-                x:xlabel,
-                    columns:[
-                    ordinatedata,
-                    tickvalues
-                    ],
-                type:chart_type,
-                bar:{
-                    width:{
-                    ratio:0.5
-                    }
+    let chart = c3.generate({
+        bindto: chartid,
+        size: {
+            height: 240,
+            width: 480
+        },
+        data: {
+            x: xlabel,
+            columns: [
+                ordinatedata,
+                tickvalues
+            ],
+            type: chart_type,
+            bar: {
+                width: {
+                    ratio: 0.5
                 }
-                },
-                axis:{
-                    x:{
-                    type: 'category',
-                        tick:{
-                            count:4
-                        }
-                    }
+            }
+        },
+        axis: {
+            x: {
+                type: 'category',
+                tick: {
+                    count: 4
                 }
+            }
+        }
 
-                });
+    });
     tickvalues.splice(0,1);
     ordinatedata.splice(0,1);
 }
 function drawdonutchart(chartid,columnname,titlename){
-    var chart=c3.generate({
-                bindto: chartid,
-                data:{
-                columns:columnname,
-                type:'donut',
-                },
-                donut: {
-                title: titlename
-                }
-                });
+    let chart = c3.generate({
+        bindto: chartid,
+        data: {
+            columns: columnname,
+            type: 'donut',
+        },
+        donut: {
+            title: titlename
+        }
+    });
 }
 function drawpiechart(chartid,chart_type){
-   type=chart_type;
- var chart = c3.generate({
-                    bindto:chartid,
-                        data: {
-                            json: {
-                               ['2xx Success']:unsortedhits[0],
-                               ['3xx Success']:unsortedhits[1],
-                               ['4xx Success']:unsortedhits[2],
-                               ['5xx Success']:unsortedhits[3],
-                            },
-                            type:chart_type,
-                                    }
-                    });
+    type=chart_type;
+    let chart = c3.generate({
+        bindto: chartid,
+        data: {
+            json: {
+                ['2xx Success']: unsortedhits[0],
+                ['3xx Success']: unsortedhits[1],
+                ['4xx Success']: unsortedhits[2],
+                ['5xx Success']: unsortedhits[3],
+            },
+            type: chart_type,
+        }
+    });
 }
 function modifychartticks(order){
-        let before_sort_hits=[];
-        let before_sort_keys=[];
-        for(i=0;i<hits.length;i++){
-          before_sort_hits.push(hits[i]);
-          before_sort_keys.push(keys[i]);
-        }
-        if(order=='desc'){
+    let before_sort_hits=[];
+    let before_sort_keys=[];
+    for(i=0;i<hits.length;i++){
+        before_sort_hits.push(hits[i]);
+        before_sort_keys.push(keys[i]);
+    }
+    if(order=='desc'){
         hits.sort(function(a,b) { return b - a; } ).reverse();
-          for(i=0;i<before_sort_hits.length;i++){
+        for(i=0;i<before_sort_hits.length;i++){
             j=hits.indexOf(before_sort_hits[i]);
             keys.splice(j,1);
             keys.splice(j,0,before_sort_keys[i]);
-          }
         }
-        else{
-          hits.sort(function(a,b) { return b - a; } );
-            for(i=0;i<before_sort_hits.length;i++){
+    }
+    else{
+        hits.sort(function(a,b) { return b - a; } );
+        for(i=0;i<before_sort_hits.length;i++){
             j=hits.indexOf(before_sort_hits[i]);
             keys.splice(j,1);
             keys.splice(j,0,before_sort_keys[i]);
@@ -255,54 +255,54 @@ function modifychartticks(order){
        drawchart('#chart','HITS','keys',type);
 }
 function modifytable(sortedarray,JSONobject,tableid){
-          let country=[];
-          for(let i = 0; i < sortedarray.length; ++i){
-            obj= jQuery.map(JSONobject, function(obj) {
+    let country=[];
+    for(let i = 0; i < sortedarray.length; ++i){
+        obj= jQuery.map(JSONobject, function(obj) {
             if(obj.country == sortedarray[i])
-            return obj;
+                return obj;
             if(obj.count==sortedarray[i]){
-            if(country.includes(obj.country)==false){
-             return obj;
-            }
+                if(country.includes(obj.country)==false){
+                    return obj;
+                }
 
             }
-          });
-           if(tableid=='geo')
-           country.push(obj[0]['country']);
-           $(`tr[id=${i}${tableid}] .cnt`).html(numeral(obj[0]['count']).format('0a'));
-           $(`tr[id=${i}${tableid}] .count`).html(numeral(obj[0]['count']).format('0,0'));
-           $(`tr[id=${i}${tableid}] .id`).html(obj[0]['_id']);
-           $(`tr[id=${i}${tableid}] .size`).html(numeral(obj[0]['size']).format('0b'));
-           $(`tr[id=${i}${tableid}] .meaning`).html(HTTP_STATUS_CODES [obj[0]['_id']]);
-           $(`tr[id=${i}${tableid}] .country`).html(obj[0]['country']);
-          }
+        });
+        if(tableid=='geo')
+            country.push(obj[0]['country']);
+        $(`tr[id=${i}${tableid}] .cnt`).html(numeral(obj[0]['count']).format('0a'));
+        $(`tr[id=${i}${tableid}] .count`).html(numeral(obj[0]['count']).format('0,0'));
+        $(`tr[id=${i}${tableid}] .id`).html(obj[0]['_id']);
+        $(`tr[id=${i}${tableid}] .size`).html(numeral(obj[0]['size']).format('0b'));
+        $(`tr[id=${i}${tableid}] .meaning`).html(HTTP_STATUS_CODES [obj[0]['_id']]);
+        $(`tr[id=${i}${tableid}] .country`).html(obj[0]['country']);
+    }
 }
 
 function sort(order,datatable,tablehead){
-          var datatoeval,i=0;
-          var sortedarray=[];
-          if(datatable=='status_code')
-          datatoeval=statuscodedata;
-          else
-          datatoeval=geographicdata;
-          for(i in datatoeval)
-          {
-           sortedarray.push(datatoeval[i][tablehead]);
-          }
+    let datatoeval, i = 0;
+    let sortedarray = [];
+    if(datatable=='status_code')
+        datatoeval=statuscodedata;
+    else
+        datatoeval=geographicdata;
+    for(i in datatoeval)
+    {
+        sortedarray.push(datatoeval[i][tablehead]);
+    }
 
-          if(typeof(sortedarray[0])=='string')
-          sortedarray.sort();
-          else
-          sortedarray.sort( function(a,b) { return b - a; } );
-          if(order=='desc'){
-          sortedarray.reverse();
-          }
-          if(datatable=='status_code'){
-          modifytable(sortedarray,datatoeval,'status');
-          console.log("dvs");
-          modifychartticks(order);
-          }
-          else{
-          modifytable(sortedarray,datatoeval,'geo');
-          }
+    if(typeof(sortedarray[0])=='string')
+        sortedarray.sort();
+    else
+        sortedarray.sort( function(a,b) { return b - a; } );
+    if(order=='desc'){
+        sortedarray.reverse();
+    }
+    if(datatable=='status_code'){
+        modifytable(sortedarray,datatoeval,'status');
+        console.log("dvs");
+        modifychartticks(order);
+    }
+    else{
+        modifytable(sortedarray,datatoeval,'geo');
+    }
 }
