@@ -67,13 +67,51 @@ class RestHandler:
             return self.write(json.dumps(stats, default=str))
 
     class Bandwidth(LoginChecker):
+
         @gen.coroutine
         def get(self):
-            query = db.access_logs.aggregate([
-                {'$group': {'_id': {'$month': "$timestamp"}, 'count': {'$sum': '$size'}}},
-                {'$sort': {'_id': 1}}
-            ])
-            return self.write(json.dumps(list(query)))
+            timespan = self.get_argument('timespan', None)
+            since = utils.get_since_today(timespan)
+            usage = self.get_argument('usage', None)
+
+            if usage == 'hourday':
+                bandwidth_query = db.access_logs.aggregate([
+                    {'$match': {'timestamp': {'$gt': since}}},
+                    {'$group': {'_id': {'$hour': '$timestamp'}, 'count': {'$sum': '$size'}}},
+                    {'$project': {'_id': 0, 'hourday': '$_id', 'count': 1}}
+                ])
+
+
+            elif usage == 'dayweek':
+                bandwidth_query = db.access_logs.aggregate([
+                    {'$match': {'timestamp': {'$gt': since}}},
+                    {'$group': {'_id': {'$dayOfWeek': '$timestamp'}, 'count': {'$sum': '$size'}}},
+                    {'$project': {'_id': 0, 'dayweek': '$_id', 'count': 1}}
+                ])
+
+            elif usage == 'month':
+                bandwidth_query = db.access_logs.aggregate([
+                    {'$match': {'timestamp': {'$gt': since}}},
+                    {'$group': {'_id': {'$month': '$timestamp'}, 'count': {'$sum': '$size'}}},
+                    {'$project': {'_id': 0, 'month': '$_id', 'count': 1}}
+                ])
+
+            elif usage =='url':
+                bandwidth_query = db.access_logs.aggregate([
+                    {'$match': {'timestamp': {'$gt': since}}},
+                    {'$group': {'_id': '$request', 'count': {'$sum': '$size'}}},
+                    {'$project': {'_id': 0, 'url': '$_id', 'count': 1}},
+                    {'$sort': {'count' : -1}},
+                    {'$limit': 15}
+                ])
+            else :
+                return self.write(json.dumps({'success':False}, default=str))
+
+            results = []
+            while (yield bandwidth_query.fetch_next):
+                results.append(bandwidth_query.next_object())
+
+            return self.write(json.dumps(results, default=str))
 
     class Statuscode(LoginChecker):
 
