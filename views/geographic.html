@@ -48,7 +48,7 @@
     <script type="text/javascript" src="/static/js/jquery.vmap.world.js" charset="utf-8"></script>
 
     <script>
-        let geographicdata;
+        let jsondata;
         let request_url = '/api/geographic?timespan=';
         let card_container = $('.card-container');
 
@@ -56,8 +56,8 @@
             $.get(url, function (data) {
                 show_data();
                 data = JSON.parse(data);
-                console.log(data);
-                geographicdata=data;
+
+                jsondata=data;
                 if(data.length > 0) {
 
                    card_container.append(`
@@ -74,23 +74,23 @@
                    for(let i = 0 ; i < data.length; ++i){
                        formatted_data[data[i].c_code] = data[i].count;
                    }
-                   <!--var data_pie_chart={};-->
-                   <!--let temp=0;-->
-                   <!--for(let i=0;i<data.length;i++){-->
-                       <!--if(i<9)-->
-                       <!--data_pie_chart[data[i].country]=data[i].count;-->
-                       <!--else{-->
-                        <!--temp+=data[i].count;;-->
-                       <!--}-->
-                   <!--}-->
-                   <!--data_pie_chart['others']=temp;-->
-                    <!--var chart = c3.generate({-->
-                    <!--bindto:"#chart_country",-->
-                        <!--data: {-->
-                            <!--json: data_pie_chart,-->
-                            <!--type:'pie',-->
-                                    <!--},-->
-                    <!--});-->
+                   var data_pie_chart={};
+                   let temp=0;
+                   for(let i=0;i<data.length;i++){
+                       if(i<9)
+                       data_pie_chart[data[i].country]=data[i].count;
+                       else{
+                        temp+=data[i].count;;
+                       }
+                   }
+                   data_pie_chart['others']=temp;
+                    var chart = c3.generate({
+                    bindto:"#chart_country",
+                        data: {
+                            json: data_pie_chart,
+                            type:'pie',
+                                    },
+                    });
                     $('#vmap').vectorMap(
                     {
                         backgroundColor: null,
@@ -110,13 +110,13 @@
                                     <table class="table">
                                       <thead>
                                         <tr>
-                                          <th>Country<span class="caret"  onclick="sort('asc','geographic','country');"></span>
+                                          <th>Country<span class="caret"  onclick="sort('asc','country');"></span>
                                                   <span class="dropup">
-                                                    <span class="caret" onclick="sort('desc','geographic','country');"></span>
+                                                    <span class="caret" onclick="sort('desc','country');"></span>
                                                   </span></th>
-                                          <th>Hits<span class="caret"  onclick="sort('asc','geographic','count');"></span>
+                                          <th>Hits<span class="caret"  onclick="sort('asc','count');"></span>
                                                   <span class="dropup">
-                                                    <span class="caret" onclick="sort('desc','geographic','count');"></span>
+                                                    <span class="caret" onclick="sort('desc','count');"></span>
                                                   </span></th>
                                         </tr>
                                       </thead>

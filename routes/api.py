@@ -72,44 +72,53 @@ class RestHandler:
         def get(self):
             timespan = self.get_argument('timespan', None)
             since = utils.get_since_today(timespan)
-            usage = self.get_argument('usage', None)
-
-            if usage == 'hourday':
-                bandwidth_query = db.access_logs.aggregate([
-                    {'$match': {'timestamp': {'$gt': since}}},
-                    {'$group': {'_id': {'$hour': '$timestamp'}, 'count': {'$sum': '$size'}}},
-                    {'$project': {'_id': 0, 'hourday': '$_id', 'count': 1}}
-                ])
 
 
-            elif usage == 'dayweek':
-                bandwidth_query = db.access_logs.aggregate([
-                    {'$match': {'timestamp': {'$gt': since}}},
-                    {'$group': {'_id': {'$dayOfWeek': '$timestamp'}, 'count': {'$sum': '$size'}}},
-                    {'$project': {'_id': 0, 'dayweek': '$_id', 'count': 1}}
-                ])
+            query_hour = db.access_logs.aggregate([
+                {'$match': {'timestamp': {'$gt': since}}},
+                {'$group': {'_id': {'$hour': '$timestamp'}, 'count': {'$sum': '$size'}}},
+                {'$project': {'_id': 0, 'hourday': '$_id', 'count': 1}}
+            ])
 
-            elif usage == 'month':
-                bandwidth_query = db.access_logs.aggregate([
-                    {'$match': {'timestamp': {'$gt': since}}},
-                    {'$group': {'_id': {'$month': '$timestamp'}, 'count': {'$sum': '$size'}}},
-                    {'$project': {'_id': 0, 'month': '$_id', 'count': 1}}
-                ])
 
-            elif usage =='url':
-                bandwidth_query = db.access_logs.aggregate([
-                    {'$match': {'timestamp': {'$gt': since}}},
-                    {'$group': {'_id': '$request', 'count': {'$sum': '$size'}}},
-                    {'$project': {'_id': 0, 'url': '$_id', 'count': 1}},
-                    {'$sort': {'count' : -1}},
-                    {'$limit': 15}
-                ])
-            else :
-                return self.write(json.dumps({'success':False}, default=str))
+            query_day = db.access_logs.aggregate([
+                {'$match': {'timestamp': {'$gt': since}}},
+                {'$group': {'_id': {'$dayOfWeek': '$timestamp'}, 'count': {'$sum': '$size'}}},
+                {'$project': {'_id': 0, 'dayweek': '$_id', 'count': 1}}
+            ])
 
-            results = []
-            while (yield bandwidth_query.fetch_next):
-                results.append(bandwidth_query.next_object())
+            query_month = db.access_logs.aggregate([
+                {'$match': {'timestamp': {'$gt': since}}},
+                {'$group': {'_id': {'$month': '$timestamp'}, 'count': {'$sum': '$size'}}},
+                {'$project': {'_id': 0, 'month': '$_id', 'count': 1}}
+            ])
+
+            query_request = db.access_logs.aggregate([
+                {'$match': {'timestamp': {'$gt': since}}},
+                {'$group': {'_id': '$request', 'count': {'$sum': '$size'}}},
+                {'$project': {'_id': 0, 'url': '$_id', 'count': 1}},
+                {'$sort': {'count' : -1}},
+                {'$limit': 15}
+            ])
+
+            results = {
+                'hours':[],
+                'days':[],
+                'months':[],
+                'urls':[],
+
+            }
+            while (yield query_hour.fetch_next):
+                results['hours'].append(query_hour.next_object())
+
+            while (yield query_day.fetch_next):
+                results['days'].append(query_day.next_object())
+
+            while (yield query_month.fetch_next):
+                results['months'].append(query_month.next_object())
+
+            while (yield query_request.fetch_next):
+                results['urls'].append(query_request.next_object())
 
             return self.write(json.dumps(results, default=str))
 

@@ -61,9 +61,34 @@ const HTTP_STATUS_CODES = {
   508: "Loop Detected",
   509: "Bandwidth Limit Exceeded",
   510: "Not Extended",
-  511: "Network Authentication Required"
+  511: "Network Authentication Required",
+  499: "Client Closed Request"
 };
-
+const weekdays={
+ 0:'Days',
+ 1:'Monday',
+ 2:'Tuesday',
+ 3:'Wednesday',
+ 4:'Thursday',
+ 5:'Friday',
+ 6:'Saturday',
+ 7:'Sunday'
+};
+const monthnames={
+ 0:'Months',
+ 1:'January',
+ 2:'February',
+ 3:'March',
+ 4:'April',
+ 5:'May',
+ 6:'June',
+ 7:'July',
+ 8:'August',
+ 9:'September',
+ 10:'October',
+ 11:'November',
+ 12:'December'
+};
 switch(window.location.pathname){
   case '/':
       $('#summary').addClass('active');
@@ -161,43 +186,85 @@ function generate_card6md(title, body) {
     `
     return card;
 }
-function drawchart(chartid,ylabel,xlabel,chart_type){
-    let ordinatedata=hits;
-    let tickvalues=keys;
-    ordinatedata.splice(0,0,ylabel);
-    tickvalues.splice(0,0,xlabel);
+function drawchart(chartid,ylabel,xlabel,chart_type,timespan,attribute_name,count){
+    var xaxistick=[],j=0;
+    let json_chart;
+    var yaxisvalues=[ylabel,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    if(timespan=='hours'){
+    j=1
+    }
     type=chart_type;
-    let chart = c3.generate({
-        bindto: chartid,
+    if(chartid!='#chart'){
+
+    for(var i=0;i<jsondata[timespan].length;i++){
+    yaxisvalues.splice(jsondata[timespan][i][attribute_name]+j,1);
+    yaxisvalues.splice(jsondata[timespan][i][attribute_name]+j,0,jsondata[timespan][i]['count']);
+    }
+
+    if(timespan=='days'){
+    xaxistick=Object.values(weekdays);
+    }
+    else if(timespan=='months'){
+    xaxistick=Object.values(monthnames);
+    }
+    else{
+    xaxistick=['Hours','0:00','1:00','2:00','3:00','4:00','5:00','6:00','7:00','8:00','9:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00']
+    }
+  }
+  else{
+   json_chart=chart_x_vs_y;
+  }
+              var chart = c3.generate({
+              bindto: chartid,
+    data: {
+
         size: {
             height: 240,
             width: 480
         },
-        data: {
-            x: xlabel,
-            columns: [
-                ordinatedata,
-                tickvalues
-            ],
-            type: chart_type,
+        x:xlabel,
+        columns:[
+        yaxisvalues,
+        xaxistick
+
+        ],
+        json:json_chart,
+        keys: {
+            x:xlabel,
+            value: [ylabel],
+        },
+
+     type: type,
             bar: {
                 width: {
                     ratio: 0.5
                 }
             }
-        },
-        axis: {
-            x: {
-                type: 'category',
-                tick: {
-                    count: 4
-                }
+            },
+             axis: {
+        x: {
+            type: 'category',
+            tick: {
+
+                count:count
+            },
+            },
+            y : {
+            tick: {
+                format: d3.format("s"),
             }
         }
+    },
 
-    });
-    tickvalues.splice(0,1);
-    ordinatedata.splice(0,1);
+});
+
+// d3.select(`${chartid} svg`).append('text')
+//    .attr('x', d3.select(`${chartid} svg`).node().getBoundingClientRect().width / 2)
+//    .attr('y', 16)
+//    .attr('text-anchor', 'middle')
+//    .style('font-size', '1.4em')
+//    .text('Title of this chart');
+
 }
 function drawdonutchart(chartid,columnname,titlename){
     let chart = c3.generate({
@@ -217,92 +284,55 @@ function drawpiechart(chartid,chart_type){
         bindto: chartid,
         data: {
             json: {
-                ['2xx Success']: unsortedhits[0],
-                ['3xx Success']: unsortedhits[1],
-                ['4xx Success']: unsortedhits[2],
-                ['5xx Success']: unsortedhits[3],
+                '2xx Success': hits[0],
+                '3xx Redirect': hits[1],
+                '4xx Client Error': hits[2],
+                '5xx Server Error': hits[3],
             },
             type: chart_type,
         }
     });
 }
 function modifychartticks(order){
-    let before_sort_hits=[];
-    let before_sort_keys=[];
-    for(i=0;i<hits.length;i++){
-        before_sort_hits.push(hits[i]);
-        before_sort_keys.push(keys[i]);
-    }
-    if(order=='desc'){
-        hits.sort(function(a,b) { return b - a; } ).reverse();
-        for(i=0;i<before_sort_hits.length;i++){
-            j=hits.indexOf(before_sort_hits[i]);
-            keys.splice(j,1);
-            keys.splice(j,0,before_sort_keys[i]);
-        }
-    }
-    else{
-        hits.sort(function(a,b) { return b - a; } );
-        for(i=0;i<before_sort_hits.length;i++){
-            j=hits.indexOf(before_sort_hits[i]);
-            keys.splice(j,1);
-            keys.splice(j,0,before_sort_keys[i]);
-          }
-        }
-        if(type=='pie')
-        drawpiechart('#chart','pie');
-        else
-       drawchart('#chart','HITS','keys',type);
+      chart_x_vs_y.sort(function(a, b){
+                return a['HITS']-b['HITS'];
+           });
+      if(order=='desc'){
+          chart_x_vs_y.reverse();
+      }
+      if(type!='pie')
+          drawchart('#chart','HITS','KEYS',type,'','',4);
 }
-function modifytable(sortedarray,JSONobject,tableid){
-    let country=[];
-    for(let i = 0; i < sortedarray.length; ++i){
-        obj= jQuery.map(JSONobject, function(obj) {
-            if(obj.country == sortedarray[i])
-                return obj;
-            if(obj.count==sortedarray[i]){
-                if(country.includes(obj.country)==false){
-                    return obj;
-                }
+function modifytable(){
+     for(let i = 0; i < jsondata.length; ++i) {
+         $(`tr[id=${i}geo] .count`).html(numeral(jsondata[i]['count']).format('0,0'));
+         $(`tr[id=${i}geo] .country`).html(jsondata[i]['country']);
+         $(`tr[id=${i}status] .cnt`).html(numeral(jsondata[i]['count']).format('0a'));
+         $(`tr[id=${i}status] .id`).html(jsondata[i]['_id']);
+         $(`tr[id=${i}status] .size`).html(numeral(jsondata[i]['size']).format('0b'));
+         $(`tr[id=${i}status] .meaning`).html(HTTP_STATUS_CODES [jsondata[i]['_id']]);
+     }
 
-            }
+}
+
+function sort(order,sort_by){
+    if(typeof(jsondata[0][sort_by])=='string'){
+    jsondata.sort(function(a, b){
+
+                if (a[sort_by] < b[sort_by])
+        return -1
+    if (a[sort_by] > b[sort_by])
+        return 1
         });
-        if(tableid=='geo')
-            country.push(obj[0]['country']);
-        $(`tr[id=${i}${tableid}] .cnt`).html(numeral(obj[0]['count']).format('0a'));
-        $(`tr[id=${i}${tableid}] .count`).html(numeral(obj[0]['count']).format('0,0'));
-        $(`tr[id=${i}${tableid}] .id`).html(obj[0]['_id']);
-        $(`tr[id=${i}${tableid}] .size`).html(numeral(obj[0]['size']).format('0b'));
-        $(`tr[id=${i}${tableid}] .meaning`).html(HTTP_STATUS_CODES [obj[0]['_id']]);
-        $(`tr[id=${i}${tableid}] .country`).html(obj[0]['country']);
-    }
-}
-
-function sort(order,datatable,tablehead){
-    let datatoeval, i = 0;
-    let sortedarray = [];
-    if(datatable=='status_code')
-        datatoeval=statuscodedata;
-    else
-        datatoeval=geographicdata;
-    for(i in datatoeval)
-    {
-        sortedarray.push(datatoeval[i][tablehead]);
-    }
-
-    if(typeof(sortedarray[0])=='string')
-        sortedarray.sort();
-    else
-        sortedarray.sort( function(a,b) { return b - a; } );
-    if(order=='desc'){
-        sortedarray.reverse();
-    }
-    if(datatable=='status_code'){
-        modifytable(sortedarray,datatoeval,'status');
-        console.log("dvs");
-        modifychartticks(order);
-    }
-    else{
-        modifytable(sortedarray,datatoeval,'geo');
-    }
+        }
+        else{
+        jsondata.sort(function(a, b){
+                return a[sort_by]-b[sort_by];
+           });
+           }
+      if(order=='desc'){
+      jsondata.reverse();
+      }
+      modifytable();
+      modifychartticks(order);
 }

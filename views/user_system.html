@@ -48,12 +48,12 @@
 
         let request_url = '/api/usersystem?timespan=';
         let card_container = $('.card-container');
-
+        var jsondata;
         function request_data(url) {
             $.get(url, function (data) {
                 show_data();
                 data = JSON.parse(data);
-
+                jsondata=data;
                 if(data['os'].length !== 0 || data['device'].length !== 0 || data['ua'].length !== 0) {
 
                     card_container.append(`
@@ -67,6 +67,7 @@
                                 <div id="chart_ua"></div></div>
                             </div>
                    `);
+
                     let formatted_data_os = [],
                         formatted_data_ua = [],
                         formatted_data_device = [];

@@ -8,23 +8,20 @@
             <div class="loader center-block"></div>
             <div class="all-data">
                 <div class="dropdown timespan">
-                    <button class="btn btn-primary btn-lg dropdown-toggle" type="button" data-toggle="dropdown">All Time
+                    <button class="btn btn-primary btn-lg dropdown-toggle" type="button" data-toggle="dropdown"><span id="timespan">All Time</span>
                     <span class="caret"></span></button>
                     <ul class="dropdown-menu">
-                        <li><a href="#">Past Day</a></li>
-                        <li><a href="#">Past Week</a></li>
-                        <li><a href="#">Past Month</a></li>
-                        <li><a href="#">All Time</a></li>
+                        <li><a href="#" id="day">Past Day</a></li>
+                        <li><a href="#" id="week">Past Week</a></li>
+                        <li><a href="#" id="month">Past Month</a></li>
+                        <li><a href="#" id="all">All Time</a></li>
                     </ul>
                 </div>
-
             <div class="row card-container">
-                <div id="chart"></div>
             </div>
             </div>
         </div>
     </div>
-
     <!--footer-->
 
     <footer class="footer">
@@ -32,44 +29,57 @@
             &copy; <script>document.write(new Date().getFullYear())</script> DisarrayTech
         </p>
     </footer>
-
     {% end %}
     {% block page_script %}
     <script>
-        $(document).ready(function() {
+        let request_url = '/api/bandwidth?timespan=';
+        let jsondata;
 
-            $('.loader').hide();
-            $('.all-data').show();
+        function request_data(url) {
+            $.get(url, function (data) {
+                show_data();
 
+                let card_container = $('.card-container');
+                jsondata = JSON.parse(data);
+                console.log(jsondata);
+                card_container.append(`
+                            <div class="col-md-12">
+                                <div id="chart_day"></div></div>
+                            </div>
+                            <div class="col-md-12 ">
+                                <div id="chart_hour"></div></div>
+                            </div>
+                            <div class="col-md-12">
+                                <div id="chart_month"></div></div>
+                            </div>
+                   `);
 
-            $.get('/api/bandwidth', function (data) {
-                console.log(data);
-
-                var chart = c3.generate({
-                    bindto: '#chart',
-                    data: {
-                        columns: [
-                            ['data1', data.map(function (d) {
-                                return d._id;
-                            })],
-                            ['data2', data.map(function (d){
-                                return d.count;
-                            })]
-                        ],
-                        type: 'bar'
-                    },
-                    bar: {
-                        width: {
-                            ratio: 0.5 // this makes bar width 50% of length between ticks
-                        }
-                    }
+                jsondata['hours'].sort(function(a, b){
+                    return a.hourday-b.hourday
                 });
-                console.log(chart,'heeeha');
-            });
-        });
 
-    </script>
-    {% end %}
+                jsondata['days'].sort(function(a, b){
+                    return a.dayweek-b.dayweek
+                });
+
+                jsondata['months'].sort(function(a, b){
+                    return a.month-b.month
+                });
+
+
+                drawchart('#chart_day','count','Days','bar','days','dayweek',7);
+                drawchart('#chart_month','count','Months','bar','months','month',12);
+                drawchart('#chart_hour','count','Hours','bar','hours','hourday',24);
+
+            });
+        }
+
+        $(document).ready(function(){
+            request_data(request_url + 'all');
+        });
+        </script>
+
+{% end %}
 
 
 </html>

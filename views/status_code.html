@@ -22,8 +22,8 @@
                         <button class="btn btn-primary btn-lg dropdown-toggle" type="button" data-toggle="dropdown">GRAPH
                         <span class="caret"></span></button>
                         <ul class="dropdown-menu">
-                          <li><a href="#" onclick="drawchart('#chart','HITS','KEYS','bar')">BAR CHART</a></li>
-                          <li><a href="#" onclick="drawchart('#chart','HITS','KEYS','area-spline')">AREA-SPLINE</a></li>
+                          <li><a href="#" onclick="drawchart('#chart','HITS','KEYS','bar','')">BAR CHART</a></li>
+                          <li><a href="#" onclick="drawchart('#chart','HITS','KEYS','area-spline','')">AREA-SPLINE</a></li>
                           <li><a href="#" onclick="drawpiechart('#chart','pie')">PIE CHART</a></li>
                         </ul>
                     </div>
@@ -57,9 +57,8 @@
     </style>
     <script>
 
-        let hits,keys,type='bar';
-        let statuscodedata;
-        let unsortedhits=[];
+        let hits,keys,type='bar',chart_x_vs_y;
+        let jsondata;
         let request_url = '/api/statuscode?timespan=';
         let card_container = $('.card-container');
         let stats = {
@@ -73,7 +72,8 @@
             $.get(url, function (data) {
                 show_data();
                 data = JSON.parse(data);
-                statuscodedata=data;
+                jsondata=data;
+
                 if(data.length > 0) {
                     for(let i = 0; i < data.length; ++i) {
 
@@ -99,7 +99,7 @@
 
 
                     card_container.append(
-                        `<div class="col-md-7 col-md-offset-2">
+                        `<div class="col-md-7 col-md-offset-2" >
                             <div id="chart"></div>
                         </div>`
                     );
@@ -109,9 +109,9 @@
                                       <thead>
                                         <tr>
                                           <th>Status Code</th>
-                                          <th>Hits<span class="caret"  onclick="sort('asc','status_code','count');"></span>
+                                          <th>Hits<span class="caret"  onclick="sort('asc','count');"></span>
                                                   <span class="dropup">
-                                                    <span class="caret" onclick="sort('desc','status_code','count');"></span>
+                                                    <span class="caret" onclick="sort('desc','count');"></span>
                                                   </span>
                                           </th>
                                           <th>Bandwidth</th>
@@ -143,11 +143,15 @@
 
                     for(i in stats) {
                         hits.push(stats[i].hits);
-                        unsortedhits.push(stats[i].hits);
+
                     }
 
+                chart_x_vs_y=[{'KEYS':keys[0],'HITS':hits[0]},
+                             {'KEYS':keys[1],'HITS':hits[1]},
+                             {'KEYS':keys[2],'HITS':hits[2]},
+                             {'KEYS':keys[3],'HITS':hits[3]}];
 
-                drawchart('#chart','HITS','KEYS','bar');
+                drawchart('#chart','HITS','KEYS','bar','','',4);
 
                 }
 
