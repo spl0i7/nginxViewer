@@ -61,15 +61,16 @@
         let jsondata;
         let request_url = '/api/statuscode?timespan=';
         let card_container = $('.card-container');
-        let stats = {
-                '2xx Success' : {'hits' : 0, 'bandwidth': 0},
-                '3xx Redirect' : {'hits' : 0, 'bandwidth': 0},
-                '4xx Client Error': {'hits' : 0, 'bandwidth': 0},
-                '5xx Server Error' : {'hits' : 0, 'bandwidth': 0}
-            }
+
 
         function request_data(url) {
             $.get(url, function (data) {
+                let stats = {
+                    '2xx Success' : {'hits' : 0, 'bandwidth': 0},
+                    '3xx Redirect' : {'hits' : 0, 'bandwidth': 0},
+                    '4xx Client Error': {'hits' : 0, 'bandwidth': 0},
+                    '5xx Server Error' : {'hits' : 0, 'bandwidth': 0}
+                }
                 show_data();
                 data = JSON.parse(data);
                 jsondata=data;
